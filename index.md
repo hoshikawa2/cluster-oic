@@ -116,6 +116,9 @@ If you don't know how to create a Load-Balancer instance, you can follow this st
 
 ## Task 4: Configure the DNS Zone for the Load-Balancer
 
+Configure a DNS name for you Load-Balancer putting the load-balancer IP address into the DNS Zone.
+See [Configure Zones](https://docs.oracle.com/en-us/iaas/Content/DNS/Tasks/managingdnszones.htm)
+
 ![img_10.png](images/img_10.png)
 
 ## Task 5: Configure the OIC's Allow-List and the Subnet Nat-Gateway  
@@ -146,8 +149,6 @@ You can see the balancing on the OICs monitoring track instances.
     done
 
 ## Final Considerations
-
-You can configure a DNS to your Load-Balance IP address. See [Configure Zones](https://docs.oracle.com/en-us/iaas/Content/DNS/Tasks/managingdnszones.htm)
 
 Deploy the integration on each OIC instance. An error should occur if the integration does not exist in the OIC instance if the load-balancer selects the same one.
 
