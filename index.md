@@ -160,7 +160,12 @@ You can see the balancing on the OICs monitoring track instances.
 But you need to isolate this with different Load-Balancers.
 
 * You can configure up to 16 API Gateway+OIC per Load-Balancer. Each Load-Balancer supports 16 backends
+
 * In CI/CD, remember you need to deploy the same artifact (integration) over the 16 OICs 
+
+* To debug a clusterized OIC, first activate the OCI Observability on each OIC instance of your cluster. [Capture the Activity Stream of Integrations in Oracle Cloud Infrastructure Console](https://docs.oracle.com/en/cloud/paas/integration-cloud/oracle-integration-oci/capture-activity-stream-oracle-cloud-infrastructure-console.html#GUID-0E99AF18-2B20-4BC4-8174-9BE5A84945DE). To debug a cluster, you need to search the problem in OCI Observability, discover the OIC instance where the error occurred and then go to the OIC instance and view the Tracker Instances console.
+
+
 
 ![img_1.png](images/img_1.png)
 
@@ -171,6 +176,7 @@ But you need to isolate this with different Load-Balancers.
 * [Create an API Gateway](https://docs.oracle.com/en-us/iaas/Content/APIGateway/Tasks/apigatewaycreatinggateway.htm)
 * [Creating a Load-Balancer](https://docs.oracle.com/en-us/iaas/Content/Balance/Tasks/managingloadbalancer_topic-Creating_Load_Balancers.htm)
 * [Configure Zones](https://docs.oracle.com/en-us/iaas/Content/DNS/Tasks/managingdnszones.htm)
+* [Capture the Activity Stream of Integrations in Oracle Cloud Infrastructure Console](https://docs.oracle.com/en/cloud/paas/integration-cloud/oracle-integration-oci/capture-activity-stream-oracle-cloud-infrastructure-console.html#GUID-0E99AF18-2B20-4BC4-8174-9BE5A84945DE)
 
 ## Acknowledgments
 
