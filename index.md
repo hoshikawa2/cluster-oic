@@ -150,6 +150,8 @@ You can see the balancing on the OICs monitoring track instances.
 
 ## Final Considerations
 
+* Remember to maintain the same base configurations for OCI API Gateway and OIC. So create these instances in the same compartments, with same security and any other configuration that affects the properly working routine.  
+
 * Deploy the integration on each OIC instance. An error should occur if the integration does not exist in the OIC instance if the load-balancer selects the same one.
 
 * Do not execute an integration request from an OIC instance to another specific instance. Always execute a local integration from the same OIC instance and replicate this integration into another instances.
@@ -180,5 +182,5 @@ But you need to isolate this with different Load-Balancers.
 
 ## Acknowledgments
 
-* **Authors** - Cristiano Hoshikawa (Oracle LAD A-Team Solution Engineer) and Rodrigo Chafik (Oracle LAD A-Team Solution Engineer) 
+* **Authors** - Cristiano Hoshikawa (Oracle LAD A-Team Solution Engineer) and Rodrigo Chafik Choueiri (Oracle LAD A-Team Solution Engineer) 
 
