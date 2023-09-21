@@ -14,7 +14,7 @@ inject-note: true
 
 Oracle Integration is an enterprise connectivity and automation platform for quickly modernizing applications, business processes, APIs, and data. Developers and business IT teams can connect any SaaS and on-premises applications six times faster with a visual development experience, embedded best practices, and prebuilt integrations for Salesforce, Snowflake, Workday, and more.
 
-OIC has a limit of 60K messages per hour per instance. You can define the maximum of 12 packages when creating a instance. So how to scale this limitation?
+OIC has a limit of 60K messages per hour per instance. You can define the maximum of 12 packages when creating an instance. So how to scale this limitation?
 
 In this article, you can see how to distribute the requests through a load-balancer with a cluster of OICs (up to 16 instances).
 
@@ -33,7 +33,7 @@ Let's go!
 
 ## Prerequisites
 
-To clusterize the OIC using Load-Balancer and OCI API Gateway, you need to:
+To clusterize the OIC using Load-Balancer and OCI API Gateway, you need:
 
 - Knowledge to provision and configure the OIC's instances
 - Knowledge to provision and configure  OCI API Gateways
@@ -150,14 +150,18 @@ You can see the balancing on the OICs monitoring track instances.
 
 ## Final Considerations
 
-Deploy the integration on each OIC instance. An error should occur if the integration does not exist in the OIC instance if the load-balancer selects the same one.
+* Deploy the integration on each OIC instance. An error should occur if the integration does not exist in the OIC instance if the load-balancer selects the same one.
 
-Do not execute an integration request from an OIC instance to another specific instance. Always execute a local integration from the same OIC instance and replicate this integration into another instances.
+* Do not execute an integration request from an OIC instance to another specific instance. Always execute a local integration from the same OIC instance and replicate this integration into another instances.
 
-If you configure this OIC Cluster to scale, remember that your backends need to scale too.
+* If you configure this OIC Cluster to scale, remember that your backends need to scale too.
 
-You can create more than one Cluster of OIC. For example, you can configure specifics clusters segregated by project.
+* You can create more than one Cluster of OIC. For example, you can configure specifics clusters segregated by project.
 But you need to isolate this with different Load-Balancers.
+
+* You can configure up to 16 API Gateway+OIC per Load-Balancer. Each Load-Balancer supports 16 backends
+* In CI/CD, remember you need to deploy the same artifact (integration) over the 16 OICs 
+
 ![img_1.png](images/img_1.png)
 
 
