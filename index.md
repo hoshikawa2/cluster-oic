@@ -2,7 +2,7 @@
 duration: PT1H00M0S
 description: Learn how to set up an Oracle Integration cluster, configure it with a Load Balancer and Oracle API Gateway.
 level: Advanced
-roles: Infrastructure
+roles: PaaS
 products: en/cloud/oracle-cloud-infrastructure/oci
 keywords: Data Integration;APIs REST/SOAP
 inject-note: true
