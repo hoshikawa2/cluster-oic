@@ -1,48 +1,68 @@
 ---
 duration: PT1H00M0S
-description: Learn how to provision a cluster of Oracle Integration with Load-Balancer and OCI API Gateway
+description: Learn how to set up an Oracle Integration cluster, configure it with a Load Balancer and Oracle API Gateway.
 level: Advanced
 roles: Infrastructure
 products: en/cloud/oracle-cloud-infrastructure/oci
-keywords: Oracle-Integration;load-balancer;api-gateway
+keywords: Data Integration;APIs REST/SOAP
 inject-note: true
 ---
 
-# Learn how to provision a cluster of Oracle Integration with Load-Balancer and OCI API Gateway
+# Provision an Oracle Integration Cluster with Load Balancer and Oracle API Gateway
 
 ## Introduction
 
-Oracle Integration is an enterprise connectivity and automation platform for quickly modernizing applications, business processes, APIs, and data. Developers and business IT teams can connect any SaaS and on-premises applications six times faster with a visual development experience, embedded best practices, and prebuilt integrations for Salesforce, Snowflake, Workday, and more.
+Oracle Integration is an enterprise connectivity and automation platform designed to quickly modernize applications, business processes, APIs, and data. Developers and business IT teams can connect to any SaaS and on-premises applications six times faster using a visual development experience, embedded best practices, and prebuilt integrations for Salesforce, Snowflake, Workday, and more.
 
-OIC has a limit of 60K messages per hour per instance. You can define the maximum of 12 packages when creating an instance. So how to scale this limitation?
+Oracle Integration has a limit of 60K messages per hour per instance. You can define a maximum of 12 packages when you create an instance.
 
-In this article, you can see how to distribute the requests through a load-balancer with a cluster of OICs (up to 16 instances).
+In this tutorial, learn how to distribute the requests through a Load Balancer with an Oracle Integration cluster (up to 16 instances).
 
-The answer for this approach is using an OCI API Gateway in front of each OIC instance. This is necessary because you cannot specify the OIC IP addresses in backend configuration of the Load-Balancer and request the path through your integrations. 
+To scale this limitation, use an Oracle API Gateway in front of each Oracle Integration instance. This is necessary because you cannot specify the Oracle Integration IP addresses in the backend configuration of the Load Balancer and request the path through your integrations.
 
-With OCI API Gateway, you can configure the path for OIC and link with the backend configuration in the Load-Balancer. It will work, the balancing will distribute the requests like a single request direct to the OIC endpoint.
+With Oracle API Gateway, configure the path for Oracle Integration and link with the backend configuration in the Load Balancer. The balancing will distribute the requests, treating them as a single request directed to the Oracle Integration endpoint.
 
-Let's go!
+![img.png](images/img.png "Introduction")
 
-![img.png](images/img.png)
+### Objectives
 
-## Objectives
+- Scale Oracle Integration up to the maximum of 60K messages/hour using multiple instances of Oracle Integration
 
-- Scale OIC up to the maximum of 60K messages/hour using many instances of OIC
-- Configure the components to clusterize the OIC: Load-Balancer, OCI API Gateway and DNS Zone
+- Configure the components to clusterize Oracle Integration: Load Balancer, Oracle API Gateway and DNS Zone
 
-## Prerequisites
+### Prerequisites
 
-To clusterize the OIC using Load-Balancer and OCI API Gateway, you need:
+You must have an understanding of how to:
 
-- Knowledge to provision and configure the OIC's instances
-- Knowledge to provision and configure  OCI API Gateways
-- Knowledge to provision and configure Load-Balancer
-- Knowledge to configure DNS Zone and Network resources
+- Provision and configure Oracle Integration instances
+- Provision and configure Oracle API Gateways
+- Provision and configure Load Balancer
+- Configure DNS Zone and network resources
 
-## Task 1: Create the OICs instances
+## Considerations
 
-In this article, we will show how to configure up to 16 OIC's instances. This will reach up to 960K messages/hour (60K x 16).
+- Remember to maintain the same base configuration for Oracle API Gateway and Oracle Integration. So create these instances in the same compartments, with same security and any other configuration that affects the properly working routine.
+
+- Deploy the integration on each Oracle Integration instance. An error should occur if the integration does not exist in the Oracle Integration instance if the Load Balancer selects the same one.
+
+- Do not execute an integration request from an Oracle Integration instance to another specific instance. Always execute a local integration from the same Oracle Integration instance and replicate this integration into other instances.
+
+- If you configure this Oracle Integration Cluster to scale, remember that your backends need to scale too.
+
+- You can create more than one cluster of Oracle Integration. For example, you can configure specific clusters segregated by project. However, you need to isolate this with different Load Balancers.
+
+- You can configure up to 16 API Gateway + Oracle Integration per Load Balancer. Each Load Balancer supports 16 backends.
+
+- In CI/CD, remember you need to deploy the same artifact (integration) over the 16 Oracle Integrations.
+
+- To debug a clusterized Oracle Integration, first activate the Oracle Cloud Infrastructure (OCI) Observability on each Oracle Integration instance of your cluster. [Capture the Activity Stream of Integrations in Oracle Cloud Infrastructure Console](https://docs.oracle.com/en/cloud/paas/integration-cloud/oracle-integration-oci/capture-activity-stream-oracle-cloud-infrastructure-console.html#GUID-0E99AF18-2B20-4BC4-8174-9BE5A84945DE). To debug a cluster, you need to search the problem in OCI Observability, discover the Oracle Integration instance where the error occurred and then go to the Oracle Integration instance and view the Tracker Instances console.
+
+![img_1.png](images/img_1.png "Project Vision")
+
+## Task 1: Create the Oracle Integration instances
+
+In this task, you will get to learn how to configure up to 16 Oracle Integration instances. This will reach up to 960K messages/hour (60K x 16).
+
 You need to create the number of instances that reach your messages/hour target. So, for example, if you need 480K messages/hour:
 
     Your_target / Maximum_messages_per_instance = Number_of_instances
@@ -50,137 +70,115 @@ You need to create the number of instances that reach your messages/hour target.
     480K = your messages/hour target
     60k = maximum messages/hour limit per instance
 
-If you don't know how to create an OIC instance, you can follow this steps in the official documentation:
+To create an Oracle Integration instance, follow this official documentation [Create an Oracle Integration Instance](https://docs.oracle.com/en/cloud/paas/integration-cloud/integration-cloud-auton/create-oracle-integration-cloud-instance.html#GUID-F6F5341D-8E36-43A8-BCB4-3FF5E8BE8E5A) .
 
-[Create an Oracle Integration Instance](https://docs.oracle.com/en/cloud/paas/integration-cloud/integration-cloud-auton/create-oracle-integration-cloud-instance.html#GUID-F6F5341D-8E36-43A8-BCB4-3FF5E8BE8E5A)
+![img_2.png](images/img_2.png "Oracle Integration instances")
 
+## Task 2: Create an Oracle API Gateway for each Oracle Integration Instance
 
-![img_2.png](images/img_2.png)
+Create Oracle API Gateway for each Oracle Integration Instance. This is mandatory because each Oracle API Gateway IP will be mapped in the Load Balancer backend configuration and each Oracle API Gateway deployment will point to the Oracle Integration endpoint.
 
-## Task 2: Create an OCI API Gateway for each OIC Instance
+To create an Oracle API Gateway instance, follow this official documentation [Create an API Gateway](https://docs.oracle.com/en-us/iaas/Content/APIGateway/Tasks/apigatewaycreatinggateway.htm).
 
-Now, we need to create one OCI API Gateway for each OIC Instance. This is mandatory because each API Gateway IP will be mapped in the Load-Balancer backend configuration and each API Gateway deployment will point into OIC endpoint.
+In the Oracle API Gateway, deploy an API using these steps:
 
-If you don't know how to create an API Gateway instance, you can follow this steps in the official documentation:
+    1. Create 1 Oracle API Gateway for 1 Oracle Integration Instance.
 
-[Create an API Gateway](https://docs.oracle.com/en-us/iaas/Content/APIGateway/Tasks/apigatewaycreatinggateway.htm)
+    2. For each Oracle API Gateway, create 1 deployment for the corresponding Oracle Integration Instance.
 
-In the OCI API Gateway, you need to deploy an API following this steps (view the picture to see the configuration):
+    3. You don't need to configure security in Oracle API Gateway, the default security will be the Oracle Integration.
 
-    1. Create 1 API Gateway for 1 OIC Instance
-    2. For each API Gateway, create 1 deployment for the corresponding OIC Instance
-    3. You don't need to configure security in API Gateway, the default security will be the OIC
-    
-    API Paramters
-    - Path Prefix: /ic
-    - Path: /api/integration/{myIntegrations*}
-    - Methods: ANY
-    - HTTP: https://oic-xxxxxxxxxxxxxx.integration.ocp.oraclecloud.com/ic/api/integration/${request.path[myIntegrations]}
-    
-    oic-xxxxxxxxxxxxxx.integration.ocp.oraclecloud.com = Corresponding OIC endpoint for each OCI API Gateway deployment
+        API Parameters
+        - Path Prefix: /ic
+        - Path: /api/integration/{myIntegrations*}
+        - Methods: ANY
+        - HTTP: https://oic-xxxxxxxxxxxxxx.integration.ocp.oraclecloud.com/ic/api/integration/${request.path[myIntegrations]}, where oic-xxxxxxxxxxxxxx.integration.ocp.oraclecloud.com = Corresponding Oracle Integration endpoint for each Oracle API Gateway deployment
 
-![img_3.png](images/img_3.png)
+![img_3.png](images/img_3.png "API Gateway")
 
-Do this configuration for each OIC API Gateway.
+>**Note**: Complete this configuration for each Oracle API Gateway.
 
-## Task 3: Create and Configure the Load-Balancer
+## Task 3: Create and Configure the Load Balancer
 
-After create the OICs and API GAteways instances, you can create the Load-Balancer to distribute the requests through the cluster.
-Prepare you VCN and subnet before the Load-Balancer creation.
+After creating the Oracle Integration and Oracle API Gateway instances, create the Load Balancer to distribute requests through the cluster. Prepare your VCN and subnet before the Load Balancer creation.
 
-If you don't know how to create a Load-Balancer instance, you can follow this steps in the official documentation:
+To create a Load Balancer instance, follow this official documentation [Creating a Load-Balancer](https://docs.oracle.com/en-us/iaas/Content/Balance/Tasks/managingloadbalancer_topic-Creating_Load_Balancers.htm).
 
-[Creating a Load-Balancer](https://docs.oracle.com/en-us/iaas/Content/Balance/Tasks/managingloadbalancer_topic-Creating_Load_Balancers.htm)
+1.  Select if your Load-Balancer will be Public or Private.
 
-    Select if your Load-Balancer will be Public or Private
-    Configure the VCN and subnet
+2.  Configure the VCN and subnet.
 
-![img_4.png](images/img_4.png)
+    ![img_4.png](images/img_4.png "Configure VCN and subnet")
 
-    Select the policy for you load-balancing
-    Specify the TCP protocol and the 443 port (OIC and API Gateway works with this configuration)
+3.  Select the load balancing policy.
 
-![img_5.png](images/img_5.png)
+4.  Specify the TCP protocol and the 443 port (Oracle Integration and API Gateway works with this configuration).
 
-    Configure the listener with TCP and port 443 
+    ![img_5.png](images/img_5.png "Policy")
 
-![img_6.png](images/img_6.png)
+5.  Configure the listener with TCP and port 443.
 
+    ![img_6.png](images/img_6.png "Configure listener")
 
-    With the Load-Balancer created, let's configure the Backend.
-    Select your backend configuration and add the IP for each API Gateways instances
+6.  With the Load Balancer created, configure the Backend. Select your backend configuration and add the IP for each Oracle API Gateway instance.
 
-![img_7.png](images/img_7.png)
-![img_8.png](images/img_8.png)
-![img_9.png](images/img_9.png)
+    ![img_7.png](images/img_7.png "Backend1")
+    ![img_8.png](images/img_8.png "Backend2")
+    ![img_9.png](images/img_9.png "Backend3")
 
-## Task 4: Configure the DNS Zone for the Load-Balancer
+## Task 4: Configure the DNS Zone for the Load Balancer
 
-Configure a DNS name for you Load-Balancer putting the load-balancer IP address into the DNS Zone.
-See [Configure Zones](https://docs.oracle.com/en-us/iaas/Content/DNS/Tasks/managingdnszones.htm)
+Configure a DNS name for your Load Balancer by providing the load balancer IP address in the DNS Zone. For more details, see [Configure Zones](https://docs.oracle.com/en-us/iaas/Content/DNS/Tasks/managingdnszones.htm).
 
-![img_10.png](images/img_10.png)
+![img_10.png](images/img_10.png "Configure Zones")
 
-## Task 5: Configure the OIC's Allow-List and the Subnet Nat-Gateway  
+## Task 5: Configure Oracle Integration Allow-List and Subnet NAT Gateway
 
-You need to configure the Load-Balancer's Subnet with the Route Table's IPs. Without this configuration, the communication between OICs and the API Gateways will not complete.
-So, you need to create in your VCN a Nat Gateway and configure, for each API Gateway, one route table using Nat Gateway and put the API Gateway IP address with /32.
+You must configure the Load Balancer's Subnet with the Route Table's IPs. Without this configuration, the communication between Oracle Integration and the Oracle API Gateway will not work.
 
-![img_14.png](images/img_14.png)
+So, you must create a NAT Gateway in your VCN and configure, for each Oracle API Gateway, one route table using NAT Gateway and add the API Gateway IP address with /32.
 
-To guarantee the security of each OIC instance, you need to configure an Allow-List putting the corresponding API Gateway IP there.
-This configuration will say the OIC will only accepts connection with the corresponding API Gateway.
+![img_14.png](images/img_14.png "NAT Gateway")
 
-For each OIC instance, do this configuration:
+To guarantee the security of each Oracle Integration instance, you need to configure an Allow-List by providing the corresponding API Gateway IP. This configuration will specify that Oracle Integration will only accept connection with the corresponding API Gateway.
 
-![img_15.png](images/img_15.png)
+For each Oracle Integration instance, follow this configuration:
+
+![img_15.png](images/img_15.png "Oracle Integration instances Configuration")
 
 ## Task 6: Test the Solution
 
-You can construct a bash script to CURL the OIC integration to test the balancing.
-In this example, the script will call 100 times the integration through the load-balance.
-You can see the balancing on the OICs monitoring track instances.
+You can construct a bash script to CURL the Oracle Integration to test the balancing.
+In this example, the script will call the integration 100 times through the load balancer.
+You can see the balancing on the Oracle Integrations monitoring track instances.
 
-![img_11.png](images/img_11.png)
+**Code for test**
+![img_11a.png](images/img_11a.png "Test")
+
+**OIC 1**
+![img_11b.png](images/img_11b.png "Test")
+
+**OIC 2**
+![img_11c.png](images/img_11c.png "Test")
 
     set -B
     for i in {1..10}; do
         curl -s -k 'GET' -H 'header info' -b 'stuff' 'http://example.com/id='$i
     done
 
-## Final Considerations
-
-* Remember to maintain the same base configurations for OCI API Gateway and OIC. So create these instances in the same compartments, with same security and any other configuration that affects the properly working routine.  
-
-* Deploy the integration on each OIC instance. An error should occur if the integration does not exist in the OIC instance if the load-balancer selects the same one.
-
-* Do not execute an integration request from an OIC instance to another specific instance. Always execute a local integration from the same OIC instance and replicate this integration into another instances.
-
-* If you configure this OIC Cluster to scale, remember that your backends need to scale too.
-
-* You can create more than one Cluster of OIC. For example, you can configure specifics clusters segregated by project.
-But you need to isolate this with different Load-Balancers.
-
-* You can configure up to 16 API Gateway+OIC per Load-Balancer. Each Load-Balancer supports 16 backends
-
-* In CI/CD, remember you need to deploy the same artifact (integration) over the 16 OICs 
-
-* To debug a clusterized OIC, first activate the OCI Observability on each OIC instance of your cluster. [Capture the Activity Stream of Integrations in Oracle Cloud Infrastructure Console](https://docs.oracle.com/en/cloud/paas/integration-cloud/oracle-integration-oci/capture-activity-stream-oracle-cloud-infrastructure-console.html#GUID-0E99AF18-2B20-4BC4-8174-9BE5A84945DE). To debug a cluster, you need to search the problem in OCI Observability, discover the OIC instance where the error occurred and then go to the OIC instance and view the Tracker Instances console.
-
-
-
-![img_1.png](images/img_1.png)
-
 
 ## Related Links
 
-* [Create an Oracle Integration Instance](https://docs.oracle.com/en/cloud/paas/integration-cloud/integration-cloud-auton/create-oracle-integration-cloud-instance.html#GUID-F6F5341D-8E36-43A8-BCB4-3FF5E8BE8E5A)
-* [Create an API Gateway](https://docs.oracle.com/en-us/iaas/Content/APIGateway/Tasks/apigatewaycreatinggateway.htm)
-* [Creating a Load-Balancer](https://docs.oracle.com/en-us/iaas/Content/Balance/Tasks/managingloadbalancer_topic-Creating_Load_Balancers.htm)
-* [Configure Zones](https://docs.oracle.com/en-us/iaas/Content/DNS/Tasks/managingdnszones.htm)
-* [Capture the Activity Stream of Integrations in Oracle Cloud Infrastructure Console](https://docs.oracle.com/en/cloud/paas/integration-cloud/oracle-integration-oci/capture-activity-stream-oracle-cloud-infrastructure-console.html#GUID-0E99AF18-2B20-4BC4-8174-9BE5A84945DE)
+- [Create an Oracle Integration Instance](https://docs.oracle.com/en/cloud/paas/integration-cloud/integration-cloud-auton/create-oracle-integration-cloud-instance.html#GUID-F6F5341D-8E36-43A8-BCB4-3FF5E8BE8E5A)
+
+- [Create an API Gateway](https://docs.oracle.com/en-us/iaas/Content/APIGateway/Tasks/apigatewaycreatinggateway.htm)
+
+- [Create a Load Balancer](https://docs.oracle.com/en-us/iaas/Content/Balance/Tasks/managingloadbalancer_topic-Creating_Load_Balancers.htm)
+
+- [Configure Zones](https://docs.oracle.com/en-us/iaas/Content/DNS/Tasks/managingdnszones.htm)
+
+- [Capture the Activity Stream of Integrations in Oracle Cloud Infrastructure Console](https://docs.oracle.com/en/cloud/paas/integration-cloud/oracle-integration-oci/capture-activity-stream-oracle-cloud-infrastructure-console.html#GUID-0E99AF18-2B20-4BC4-8174-9BE5A84945DE)
 
 ## Acknowledgments
 
-* **Authors** - Cristiano Hoshikawa (Oracle LAD A-Team Solution Engineer) and Rodrigo Chafik Choueiri (Oracle LAD A-Team Solution Engineer) 
-
+- **Authors** - Cristiano Hoshikawa (Oracle LAD A-Team Solution Engineer) and Rodrigo Chafik Choueiri (Oracle LAD A-Team Solution Engineer)
